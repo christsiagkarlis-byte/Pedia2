@@ -1,0 +1,11 @@
+{
+  "name": "PaizoMath — Παίζω και μαθαίνω",
+  "short_name": "PaizoMath",
+  "description": "Αυτόνομη ιδιωτική εκπαιδευτική εφαρμογή",
+  "lang": "el",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7faf4",
+  "theme_color": "#164d4a",
+  "icons": [{"src": "./paizomath-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+}
