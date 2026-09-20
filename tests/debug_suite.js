@@ -52,6 +52,13 @@ test('production bundle has no helper-name collision or out-of-scope PIN key', (
   assert.match(bundle, /V=JSON\.parse\(localStorage\.getItem\(Rl\)\|\|"null"\),k=localStorage\.getItem\(Jl\)/);
 });
 
+test('PWA registers a root service worker and starts with one Test profile', () => {
+  assert.ok(fs.existsSync(path.join(root, 'sw.js')));
+  assert.match(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), /addEventListener\("fetch"/);
+  assert.match(bundle, /Uh=\[\{id:"test",name:"Τεστ"/);
+  assert.match(fs.readFileSync(path.join(root, 'app/index.html'), 'utf8'), /serviceWorker\.register\("\.\.\/sw\.js"/);
+});
+
 test('PWA shortcut launches directly into the protected app route', () => {
   const pwa = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
   assert.equal(pwa.id, './app/index.html');
@@ -155,6 +162,7 @@ test('teachers can create and insert a custom question into the active test', ()
   assert.match(bundle, /source:"teacher-custom"/);
   assert.match(bundle, /Math\.max\(1,Math\.min\(20,h\)\)\+K\.length/);
   assert.match(bundle, /V=\[\.\.\.K,\.\.\.nx\(d,u,s/);
+  assert.match(bundle, /scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
 });
 
 test('child profile deletion requires the parent or teacher PIN and clears progress', () => {
@@ -165,12 +173,20 @@ test('child profile deletion requires the parent or teacher PIN and clears progr
   assert.doesNotMatch(bundle, /profile-delete",disabled:m\.length===1/);
 });
 
+test('question menu offers database and local teacher question paths with direct replacement', () => {
+  assert.match(bundle, /Άλλες ερωτήσεις από τη βάση/);
+  assert.match(bundle, /Other questions from our bank/);
+  assert.match(bundle, /className:"question-replace-button no-print"/);
+  assert.match(bundle, /onClick:\(\)=>U\(V\)/);
+  assert.match(bundle, /source:"teacher-custom",author:\$paizomathAuthor\.trim\(\)/);
+});
+
 test('question menu is bilingual, beside the test, and hidden from print', () => {
   assert.match(bundle, /Δική μου ερώτηση/);
-  assert.match(bundle, /Εισαγωγή από τη βάση δεδομένων/);
+  assert.match(bundle, /Άλλες ερωτήσεις από τη βάση/);
   assert.match(bundle, /Αποθήκευση και εισαγωγή/);
   assert.match(bundle, /My own question/);
-  assert.match(bundle, /Import from question database/);
+  assert.match(bundle, /Other questions from our bank/);
   assert.match(bundle, /Install on screen/);
   assert.match(bundle, /Delete local data/);
 });

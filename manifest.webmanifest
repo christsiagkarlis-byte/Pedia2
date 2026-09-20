@@ -16,5 +16,7 @@
       "purpose": "any maskable"
     }
   ],
-  "scope": "./"
+  "scope": "./",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
 }
