@@ -48,7 +48,8 @@ test('JavaScript bundle parses', () => {
 
 test('PWA shortcut launches directly into the protected app route', () => {
   const pwa = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
-  assert.equal(pwa.start_url, './app/');
+  assert.equal(pwa.id, './app/index.html');
+  assert.equal(pwa.start_url, './app/index.html');
   assert.equal(pwa.scope, './');
 });
 
@@ -217,12 +218,37 @@ test('User Guide explains both personal and full-database imports', () => {
   assert.ok(bundle.includes('To open the full question database, press Open question database'));
 });
 
+test('global Error Boundary prevents a blank white screen', () => {
+  assert.match(bundle, /class AppErrorBoundary extends T\.Component/);
+  assert.match(bundle, /static getDerivedStateFromError/);
+  assert.ok(bundle.includes('Κάτι πήγε στραβά'));
+  assert.match(bundle, /window\.addEventListener\("error"/);
+  assert.match(bundle, /window\.addEventListener\("unhandledrejection"/);
+  assert.match(bundle, /c\.jsx\(AppErrorBoundary,\{children:c\.jsx\(Sj/);
+});
+
+test('all application routes are declared and quiz navigation is null-safe', () => {
+  for (const route of ['path:"/"', 'path:"/terms"', 'path:"/privacy"', 'path:"/app"', 'path:"/studio"', 'path:"/404"']) {
+    assert.ok(bundle.includes(route), `missing route ${route}`);
+  }
+  assert.match(bundle, /nx\(y\?\.subject\?\?"",s\.grade,i,1001\)/);
+  assert.match(bundle, /z=M\.length\?M\[j%M\.length\]:null/);
+});
+
 test('all HTML entry points reference the deployed asset bundle', () => {
   for (const file of ['index.html', 'app/index.html', 'studio/index.html', 'terms/index.html', 'privacy/index.html', '404.html']) {
     const html = fs.readFileSync(path.join(root, file), 'utf8');
     assert.match(html, /assets\/index-BT5Zs9ye\.js/);
     assert.match(html, /assets\/index-VvnKvMSq\.css/);
   }
+});
+
+test('mobile app entry resolves manifest and shared assets from /app/', () => {
+  const appHtml = fs.readFileSync(path.join(root, 'app/index.html'), 'utf8');
+  assert.match(appHtml, /href="\.\.\/manifest\.webmanifest"/);
+  assert.match(appHtml, /src="\.\.\/assets\/index-BT5Zs9ye\.js"/);
+  assert.match(appHtml, /href="\.\.\/assets\/index-VvnKvMSq\.css"/);
+  assert.ok(fs.existsSync(path.join(root, 'app/index.html')));
 });
 
 (async () => {
