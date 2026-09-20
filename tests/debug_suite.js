@@ -46,10 +46,10 @@ test('JavaScript bundle parses', () => {
   execFileSync(process.execPath, ['--check', bundlePath], { stdio: 'pipe' });
 });
 
-test('production bundle has no helper-name collision or out-of-scope PIN key', () => {
+test('production bundle has no helper-name collision and guards recovery storage', () => {
   assert.match(bundle, /function PaizoSanitize\(s\)/);
   assert.doesNotMatch(bundle, /function Qs\(s\)\{return String/);
-  assert.match(bundle, /V=JSON\.parse\(localStorage\.getItem\(Rl\)\|\|"null"\),k=localStorage\.getItem\(Jl\)/);
+  assert.match(bundle, /V=\(\(\)=>\{try\{return JSON\.parse\(localStorage\.getItem\(Rl\)\|\|"null"\)\}catch\{return null\}\}\)\(\),k=localStorage\.getItem\(Jl\)/);
 });
 
 test('PWA registers a root service worker and starts with one Test profile', () => {
