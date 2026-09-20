@@ -149,9 +149,9 @@ test('quiz state resets when language, grade, or lesson changes', () => {
 });
 
 test('teachers can create and insert a custom question into the active test', () => {
-  assert.ok(bundle.includes('+ Προσθήκη Δικής μου Ερώτησης'));
-  assert.ok(bundle.includes('Κείμενο Ερώτησης'));
-  assert.ok(bundle.includes('Επιλογή Σωστής Απάντησης'));
+  assert.match(bundle, /Δική μου ερώτηση/);
+  assert.match(bundle, /Κείμενο ερώτησης/);
+  assert.match(bundle, /Επιλογή σωστής απάντησης/);
   assert.match(bundle, /source:"teacher-custom"/);
   assert.match(bundle, /Math\.max\(1,Math\.min\(20,h\)\)\+K\.length/);
   assert.match(bundle, /V=\[\.\.\.K,\.\.\.nx\(d,u,s/);
@@ -163,6 +163,16 @@ test('child profile deletion requires the parent or teacher PIN and clears progr
   assert.match(bundle, /delete V\[M\.id\]/);
   assert.match(bundle, /onClick:\(\)=>removeProfile\(M\),children:d\.delete/);
   assert.doesNotMatch(bundle, /profile-delete",disabled:m\.length===1/);
+});
+
+test('question menu is bilingual, beside the test, and hidden from print', () => {
+  assert.match(bundle, /Δική μου ερώτηση/);
+  assert.match(bundle, /Εισαγωγή από τη βάση δεδομένων/);
+  assert.match(bundle, /Αποθήκευση και εισαγωγή/);
+  assert.match(bundle, /My own question/);
+  assert.match(bundle, /Import from question database/);
+  assert.match(bundle, /Install on screen/);
+  assert.match(bundle, /Delete local data/);
 });
 
 test('custom question banks can be exported and imported as validated JSON', () => {
