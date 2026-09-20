@@ -1,0 +1,50 @@
+{
+  "title": "PaizoMath separated question banks",
+  "version": "2026-09-20",
+  "schema": {
+    "key": "grade|subject|language",
+    "question": [
+      "id",
+      "prompt",
+      "choices",
+      "correct",
+      "explanation"
+    ]
+  },
+  "rules": {
+    "uniqueQuestionId": true,
+    "uniquePromptPerBank": true,
+    "uniqueChoiceSetPerBank": true,
+    "randomizedCorrectPosition": true,
+    "approvedOnly": true
+  },
+  "grades": [
+    "Νηπιαγωγείο",
+    "Α΄ Δημοτικού",
+    "Β΄ Δημοτικού",
+    "Γ΄ Δημοτικού",
+    "Δ΄ Δημοτικού",
+    "Ε΄ Δημοτικού",
+    "ΣΤ΄ Δημοτικού"
+  ],
+  "subjects": [
+    "Μαθηματικά με αντικείμενα",
+    "Μαθηματικά",
+    "Ιστορία",
+    "Θρησκευτικά",
+    "Γλώσσα",
+    "Γεωγραφία",
+    "Φυσικές Επιστήμες",
+    "Μελέτη Περιβάλλοντος",
+    "Αγωγή Υγείας",
+    "Εικαστικά",
+    "Μουσική",
+    "Φυσική Αγωγή",
+    "Πληροφορική και Επιστήμη Ηλεκτρονικών Υπολογιστών",
+    "Σχεδιασμός και Τεχνολογία",
+    "Κοινωνική και Πολιτική Αγωγή",
+    "Λογοτεχνία",
+    "Αγγλικά"
+  ],
+  "routing": "The runtime key is derived from the selected grade, subject and language; no question is read from another key."
+}
