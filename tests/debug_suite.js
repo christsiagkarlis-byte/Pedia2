@@ -169,6 +169,9 @@ test('child profile deletion requires the parent or teacher PIN and clears progr
   assert.match(bundle, /removeProfile=async M=>/);
   assert.match(bundle, /await Xs\(z\)!==localStorage\.getItem\(Jl\)/);
   assert.match(bundle, /delete V\[M\.id\]/);
+  assert.match(bundle, /sessionStorage\.clear\(\)/);
+  assert.match(bundle, /caches\.delete\(z\)/);
+  assert.match(bundle, /window\.location\.replace\("\.\/index\.html\?reset="/);
   assert.match(bundle, /onClick:\(\)=>removeProfile\(M\),children:d\.delete/);
   assert.doesNotMatch(bundle, /profile-delete",disabled:m\.length===1/);
 });
