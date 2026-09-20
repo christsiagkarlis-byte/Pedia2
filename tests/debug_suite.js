@@ -174,10 +174,11 @@ test('child profile deletion requires the parent or teacher PIN and clears progr
 });
 
 test('question menu offers database and local teacher question paths with direct replacement', () => {
-  assert.match(bundle, /Άλλες ερωτήσεις από τη βάση/);
-  assert.match(bundle, /Other questions from our bank/);
+  assert.ok(bundle.includes('Άλλες ερωτήσεις από τη βάση'));
+  assert.ok(bundle.includes('Other questions from our bank'));
   assert.match(bundle, /className:"question-replace-button no-print"/);
-  assert.match(bundle, /onClick:\(\)=>U\(V\)/);
+  assert.match(bundle, /onClick:\(\)=>replaceTestQuestion\(V\)/);
+  assert.match(bundle, /const replaceTestQuestion=V=>/);
   assert.match(bundle, /source:"teacher-custom",author:\$paizomathAuthor\.trim\(\)/);
 });
 
