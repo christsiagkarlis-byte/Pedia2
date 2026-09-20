@@ -46,6 +46,12 @@ test('JavaScript bundle parses', () => {
   execFileSync(process.execPath, ['--check', bundlePath], { stdio: 'pipe' });
 });
 
+test('production bundle has no helper-name collision or out-of-scope PIN key', () => {
+  assert.match(bundle, /function PaizoSanitize\(s\)/);
+  assert.doesNotMatch(bundle, /function Qs\(s\)\{return String/);
+  assert.match(bundle, /V=JSON\.parse\(localStorage\.getItem\(Rl\)\|\|"null"\),k=localStorage\.getItem\(Jl\)/);
+});
+
 test('PWA shortcut launches directly into the protected app route', () => {
   const pwa = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
   assert.equal(pwa.id, './app/index.html');
@@ -117,11 +123,11 @@ test('print test pool enforces unique IDs and normalized prompt text', () => {
 });
 
 test('print rendering strips numeric and generated suffixes from prompts and choices', () => {
-  assert.match(bundle, /function Qs\(s\)/);
+  assert.match(bundle, /function PaizoSanitize\(s\)/);
   assert.ok(bundle.includes('\\s*\\(\\s*\\d+\\s*\\)'));
   assert.match(bundle, /παράδειγμα\|example\|νέα εφαρμογή/);
-  assert.match(bundle, /choices\.map\(Qs\)/);
-  assert.match(bundle, /prompt:Qs\(F\.prompt\)/);
+  assert.match(bundle, /choices\.map\(PaizoSanitize\)/);
+  assert.match(bundle, /prompt:PaizoSanitize\(F\.prompt\)/);
   assert.doesNotMatch(bundle, /new application \$\{F\+1\}/);
   assert.doesNotMatch(bundle, /different case \$\{F\+1\}/);
 });
@@ -132,7 +138,7 @@ test('global lesson filtering exposes stable unique IDs', () => {
 });
 
 test('quiz pool accepts only globally identified, sanitized records', () => {
-  assert.match(bundle, /const O=String\(F\.id\?\?""\)\.trim\(\),S=Ks\(F\.prompt\)/);
+  assert.match(bundle, /const O=String\(F\.id\?\?""\)\.trim\(\),S=PaizoKey\(F\.prompt\)/);
   assert.match(bundle, /if\(!O\|\|!S\|\|J\.has\(O\)\|\|ee\.has\(S\)\)return W/);
   assert.ok(bundle.includes('F=J;M.add(F);'));
 });
