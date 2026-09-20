@@ -157,7 +157,18 @@ test('teachers can create and insert a custom question into the active test', ()
   assert.match(bundle, /V=\[\.\.\.K,\.\.\.nx\(d,u,s/);
 });
 
+test('child profile deletion requires the parent or teacher PIN and clears progress', () => {
+  assert.match(bundle, /removeProfile=async M=>/);
+  assert.match(bundle, /await Xs\(z\)!==localStorage\.getItem\(Jl\)/);
+  assert.match(bundle, /delete V\[M\.id\]/);
+  assert.match(bundle, /onClick:\(\)=>removeProfile\(M\),children:d\.delete/);
+  assert.doesNotMatch(bundle, /profile-delete",disabled:m\.length===1/);
+});
+
 test('custom question banks can be exported and imported as validated JSON', () => {
+  assert.match(bundle, /i\?"Αντικατάσταση":"Replace"/);
+  assert.match(bundle, /author:\$paizomathAuthor\.trim\(\)/);
+  assert.match(bundle, /X&&X\.index===index/);
   assert.ok(bundle.includes('Εξαγωγή Ερωτήσεων'));
   assert.ok(bundle.includes('Εισαγωγή Ερωτήσεων'));
   assert.match(bundle, /type:"paizomath-custom-questions"/);
