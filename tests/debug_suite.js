@@ -46,6 +46,12 @@ test('JavaScript bundle parses', () => {
   execFileSync(process.execPath, ['--check', bundlePath], { stdio: 'pipe' });
 });
 
+test('PWA shortcut launches directly into the protected app route', () => {
+  const pwa = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
+  assert.equal(pwa.start_url, './app/');
+  assert.equal(pwa.scope, './');
+});
+
 test('question-bank manifest is structurally complete', () => {
   assert.ok(manifest.grades.length >= 4);
   assert.ok(manifest.subjects.length >= 10);
@@ -54,19 +60,38 @@ test('question-bank manifest is structurally complete', () => {
   }
 });
 
-test('PIN is the default root state and unlock is required', () => {
-  assert.ok(bundle.includes('T.useState("pin")'));
-  assert.match(bundle, /onUnlock:.*firstEntry/);
-  assert.match(bundle, /m!==localStorage\.getItem\(Jl\)/);
-  assert.match(bundle, /m\.length!==6/);
+test('launch opens on the single Parent/PIN authentication screen', () => {
+  assert.ok(bundle.includes('function mj({onUnlock:u})'));
+  assert.ok(bundle.includes('children:"Γονέας"'));
+  assert.ok(bundle.includes('children:"PIN γονέα"'));
+  assert.ok(bundle.includes('inputMode:"numeric"'));
+  assert.ok(bundle.includes('pattern:"[0-9]{6}"'));
+  assert.ok(bundle.includes('localStorage.setItem(Jl,await Xs(m))'));
+  assert.doesNotMatch(bundle, /firstEntry/);
+});
+test('PIN recovery requires a security question and answer during setup', () => {
+  assert.match(bundle, /Rl="paizomath-family-recovery-v1"/);
+  assert.ok(bundle.includes('Μυστική Ερώτηση'));
+  assert.ok(bundle.includes('Απάντηση'));
+  assert.match(bundle, /!k\).*Διάλεξε μυστική ερώτηση/);
 });
 
-test('app locks on resume/background and child exit returns to PIN', () => {
+test('PIN and recovery answers are SHA-256 hashed and recovery is case-insensitive', () => {
+  assert.match(bundle, /crypto\.subtle\.digest\("SHA-256"/);
+  assert.match(bundle, /localStorage\.setItem\(Jl,await Xs\(m\)\)/);
+  assert.match(bundle, /answerHash:await Xs\(a\.trim\(\)\.toLocaleLowerCase\(\)\)/);
+  assert.match(bundle, /await Xs\(o\.trim\(\)\.toLocaleLowerCase\(\)\)!==V\.answerHash/);
+  assert.ok(bundle.includes('Ξέχασα το PIN'));
+});
+
+test('app locks on resume/background and protected routes use the same gate', () => {
   assert.match(bundle, /addEventListener\("pageshow"/);
   assert.match(bundle, /addEventListener\("pagehide"/);
   assert.match(bundle, /addEventListener\("visibilitychange"/);
-  assert.match(bundle, /y=\(\)=>\{m\(null\),r\("pin"\)\}/);
-  assert.match(bundle, /onClick:u/);
+  assert.match(bundle, /document\.hidden&&g/);
+  assert.match(bundle, /path:"\/",component:gj/);
+  assert.match(bundle, /path:"\/app",component:gj/);
+  assert.match(bundle, /path:"\/studio",component:gj/);
 });
 
 test('progress storage rejects malformed values', () => {
@@ -83,6 +108,54 @@ test('question IDs include subject, grade, language, and sequence', () => {
   assert.match(bundle, /source:"PaizoMath curriculum — separated grade\/subject bank"/);
 });
 
+test('print test pool enforces unique IDs and normalized prompt text', () => {
+  assert.match(bundle, /nx\(d,u,s,Math\.max\(w,500\)\)/);
+  assert.match(bundle, /J\.has\(O\)/);
+  assert.match(bundle, /ee\.has\(S\)/);
+  assert.match(bundle, /V\.reduce\(\(W,F\)=>/);
+});
+
+test('print rendering strips numeric and generated suffixes from prompts and choices', () => {
+  assert.match(bundle, /function Qs\(s\)/);
+  assert.ok(bundle.includes('\\s*\\(\\s*\\d+\\s*\\)'));
+  assert.match(bundle, /choices\.map\(Qs\)/);
+  assert.match(bundle, /prompt:Qs\(F\.prompt\)/);
+  assert.doesNotMatch(bundle, /new application \$\{F\+1\}/);
+  assert.doesNotMatch(bundle, /different case \$\{F\+1\}/);
+});
+
+test('teachers can create and insert a custom question into the active test', () => {
+  assert.ok(bundle.includes('+ Προσθήκη Δικής μου Ερώτησης'));
+  assert.ok(bundle.includes('Κείμενο Ερώτησης'));
+  assert.ok(bundle.includes('Επιλογή Σωστής Απάντησης'));
+  assert.match(bundle, /source:"teacher-custom"/);
+  assert.match(bundle, /Math\.max\(1,Math\.min\(20,h\)\)\+K\.length/);
+  assert.match(bundle, /V=\[\.\.\.K,\.\.\.nx\(d,u,s/);
+});
+
+test('custom question banks can be exported and imported as validated JSON', () => {
+  assert.ok(bundle.includes('Εξαγωγή Ερωτήσεων'));
+  assert.ok(bundle.includes('Εισαγωγή Ερωτήσεων'));
+  assert.match(bundle, /type:"paizomath-custom-questions"/);
+  assert.match(bundle, /new Blob\(\[JSON\.stringify/);
+  assert.match(bundle, /new FileReader/);
+  assert.match(bundle, /accept:"application\/json"/);
+});
+
+test('custom imports merge into the active grade/subject bank and reject malformed records', () => {
+  assert.match(bundle, /Array\.isArray\(k\.questions\)/);
+  assert.match(bundle, /Y\.choices\.length!==4/);
+  assert.match(bundle, /localStorage\.setItem\(sk,JSON\.stringify\(R\)\)/);
+  assert.match(bundle, /Z\(R\)/);
+});
+
+test('custom questions persist under selected grade and subject', () => {
+  assert.ok(bundle.includes('paizomath-custom-questions-'));
+  assert.match(bundle, /localStorage\.setItem\(sk,JSON\.stringify\(item\)\)/);
+  assert.match(bundle, /JSON\.parse\(localStorage\.getItem\(sk\)\|\|"\[\]"\)/);
+  assert.match(bundle, /subject:d,grade:u,language:s/);
+});
+
 test('question choices preserve the correct answer and randomize its position', () => {
   assert.ok(bundle.includes('W=(w*3+Math.floor(Math.random()*le.length))%le.length'));
   assert.ok(bundle.includes('R=le.map((q,k)=>q===ee?q'));
@@ -95,6 +168,24 @@ test('bilingual fallback records keep question, answer, and choices in one langu
   assert.ok(bundle.includes('ee=b?D[2]:E?.[0]??D[2]'));
   assert.ok(bundle.includes('Y=b?D[3]:E?.[1]??D[3]'));
   assert.ok(bundle.includes('Oo.find(([el,en])=>el===q||en===q)'));
+});
+
+test('User Guide has distinct complete Greek and English language profiles', () => {
+  assert.match(bundle, /function Hj\(\{language:s\}/);
+  assert.ok(bundle.includes('Οδηγός χρήσης και βοήθεια'));
+  assert.ok(bundle.includes('User Guide & Help'));
+  assert.ok(bundle.includes('Αναζήτηση στον οδηγό'));
+  assert.ok(bundle.includes('Search the user guide'));
+  assert.ok(bundle.includes('Είσοδος γονέα'));
+  assert.ok(bundle.includes('Parent sign-in'));
+});
+
+test('User Guide controls render from the selected language profile', () => {
+  assert.match(bundle, /const i=s==="el",d=i\?\{/);
+  assert.match(bundle, /placeholder:d\.search/);
+  assert.match(bundle, /children:p\.title/);
+  assert.match(bundle, /c\.jsx\(Hj,\{language:s\}\)/);
+  assert.ok(bundle.includes('href:"#user-help"'));
 });
 
 test('all HTML entry points reference the deployed asset bundle', () => {
