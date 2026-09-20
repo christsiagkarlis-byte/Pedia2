@@ -118,10 +118,27 @@ test('print test pool enforces unique IDs and normalized prompt text', () => {
 test('print rendering strips numeric and generated suffixes from prompts and choices', () => {
   assert.match(bundle, /function Qs\(s\)/);
   assert.ok(bundle.includes('\\s*\\(\\s*\\d+\\s*\\)'));
+  assert.match(bundle, /παράδειγμα\|example\|νέα εφαρμογή/);
   assert.match(bundle, /choices\.map\(Qs\)/);
   assert.match(bundle, /prompt:Qs\(F\.prompt\)/);
   assert.doesNotMatch(bundle, /new application \$\{F\+1\}/);
   assert.doesNotMatch(bundle, /different case \$\{F\+1\}/);
+});
+
+test('global lesson filtering exposes stable unique IDs', () => {
+  assert.match(bundle, /id:`\$\{u\.grade\}\|\$\{m\}\|\$\{i\}`/);
+  assert.match(bundle, /findIndex\(candidate=>candidate\.id===item\.id\)===index/);
+});
+
+test('quiz pool accepts only globally identified, sanitized records', () => {
+  assert.match(bundle, /const O=String\(F\.id\?\?""\)\.trim\(\),S=Ks\(F\.prompt\)/);
+  assert.match(bundle, /if\(!O\|\|!S\|\|J\.has\(O\)\|\|ee\.has\(S\)\)return W/);
+  assert.ok(bundle.includes('F=J;M.add(F);'));
+});
+
+test('quiz state resets when language, grade, or lesson changes', () => {
+  assert.match(bundle, /p\(0\),b\(null\),h\("quiz"\)/);
+  assert.match(bundle, /\},\[i,v,s\.grade,y\?\.subject\]\)/);
 });
 
 test('teachers can create and insert a custom question into the active test', () => {
@@ -186,6 +203,18 @@ test('User Guide controls render from the selected language profile', () => {
   assert.match(bundle, /children:p\.title/);
   assert.match(bundle, /c\.jsx\(Hj,\{language:s\}\)/);
   assert.ok(bundle.includes('href:"#user-help"'));
+});
+
+test('teacher can open the full question database from the educator lab', () => {
+  assert.match(bundle, /function lj\(\{language:s,onOpenQuestionBank:nj\}\)/);
+  assert.ok(bundle.includes('Άνοιγμα βάσης ερωτήσεων'));
+  assert.match(bundle, /onOpenQuestionBank:\(\)=>i\("questions"\)/);
+  assert.ok(bundle.includes('Εισαγωγή παρτίδας'));
+});
+
+test('User Guide explains both personal and full-database imports', () => {
+  assert.ok(bundle.includes('Για την πλήρη βάση ερωτήσεων πάτησε πρώτα Άνοιγμα βάσης ερωτήσεων'));
+  assert.ok(bundle.includes('To open the full question database, press Open question database'));
 });
 
 test('all HTML entry points reference the deployed asset bundle', () => {
