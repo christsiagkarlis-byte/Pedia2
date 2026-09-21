@@ -37,7 +37,7 @@ function request(port, pathname) {
 }
 
 test('required deploy files exist', () => {
-  for (const file of ['index.html', 'app/index.html', '404.html', bundlePath, cssPath, manifestPath, 'manifest.webmanifest']) {
+  for (const file of ['index.html', 'app/index.html', '404.html', bundlePath, cssPath, manifestPath, 'manifest.webmanifest', 'paizomath-icon-192.png', 'paizomath-icon-512.png']) {
     assert.ok(fs.existsSync(path.isAbsolute(file) ? file : path.join(root, file)), `missing ${file}`);
   }
 });
@@ -54,9 +54,19 @@ test('production bundle has no helper-name collision and guards recovery storage
 
 test('PWA registers a root service worker and starts with one Test profile', () => {
   assert.ok(fs.existsSync(path.join(root, 'sw.js')));
-  assert.match(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), /addEventListener\("fetch"/);
+  const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  assert.match(sw, /addEventListener\("fetch"/);
+  assert.match(sw, /request\.mode === "navigate"/);
+  assert.match(sw, /paizomath-v7/);
   assert.match(bundle, /Uh=\[\{id:"test",name:"Τεστ"/);
   assert.match(fs.readFileSync(path.join(root, 'app/index.html'), 'utf8'), /serviceWorker\.register\("\.\.\/sw\.js"/);
+});
+
+test('PWA manifest provides install-compatible icons and safe scope', () => {
+  const pwa = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
+  assert.equal(pwa.scope, './');
+  assert.ok(pwa.icons.some(icon => icon.src === './paizomath-icon-192.png' && icon.sizes === '192x192'));
+  assert.ok(pwa.icons.some(icon => icon.src === './paizomath-icon-512.png' && icon.sizes === '512x512'));
 });
 
 test('PWA shortcut launches directly into the protected app route', () => {
@@ -176,10 +186,20 @@ test('child profile deletion requires the parent or teacher PIN and clears progr
 test('question menu offers database and local teacher question paths with direct replacement', () => {
   assert.ok(bundle.includes('Άλλες ερωτήσεις από τη βάση'));
   assert.ok(bundle.includes('Other questions from our bank'));
-  assert.match(bundle, /className:"question-replace-button no-print"/);
+  assert.match(bundle, /className:"question-replace-button no-print",disabled:!availableReplacementQuestions\(V\)\.length/);
   assert.match(bundle, /onClick:\(\)=>replaceTestQuestion\(V\)/);
-  assert.match(bundle, /const replaceTestQuestion=V=>/);
+  assert.match(bundle, /replaceTestQuestion=V=>/);
+  assert.match(bundle, /Math\.floor\(Math\.random\(\)\*W\.length\)/);
+  assert.match(bundle, /tt\(q=>\(\{\.\.\.q,\[questionBaseId\(V\)\]:F\}\)\)/);
   assert.match(bundle, /source:"teacher-custom",author:\$paizomathAuthor\.trim\(\)/);
+});
+
+test('question replacements persist by source ID and clear on filter changes', () => {
+  assert.match(bundle, /\[X,tt\]=T\.useState\(\{\}\)/);
+  assert.match(bundle, /sourceQuestionId/);
+  assert.match(bundle, /X\[String\(F\.id\)\]/);
+  assert.match(bundle, /tt\(\{\}\),U\(-1\)\},\[u,d,s,h\]\)/);
+  assert.match(bundle, /Δεν υπάρχει άλλη διαθέσιμη ερώτηση για αντικατάσταση/);
 });
 
 test('question menu is bilingual, beside the test, and hidden from print', () => {
@@ -195,7 +215,8 @@ test('question menu is bilingual, beside the test, and hidden from print', () =>
 test('custom question banks can be exported and imported as validated JSON', () => {
   assert.match(bundle, /i\?"Αντικατάσταση":"Replace"/);
   assert.match(bundle, /author:\$paizomathAuthor\.trim\(\)/);
-  assert.match(bundle, /X&&X\.index===index/);
+  assert.match(bundle, /replacement&&targetId&&tt\(q=>\(\{\.\.\.q,\[targetId\]:replacement\}\)\)/);
+  assert.match(bundle, /typeof i\.topic=="string"&&i\.topic\.trim\(\)\.length>0/);
   assert.ok(bundle.includes('Εξαγωγή Ερωτήσεων'));
   assert.ok(bundle.includes('Εισαγωγή Ερωτήσεων'));
   assert.match(bundle, /type:"paizomath-custom-questions"/);
@@ -269,6 +290,13 @@ test('global Error Boundary prevents a blank white screen', () => {
   assert.match(bundle, /window\.addEventListener\("error"/);
   assert.match(bundle, /window\.addEventListener\("unhandledrejection"/);
   assert.match(bundle, /c\.jsx\(AppErrorBoundary,\{children:c\.jsx\(Sj/);
+});
+
+test('device cleanup is scoped and backup progress is validated', () => {
+  assert.doesNotMatch(bundle, /try\{localStorage\.clear\(\)\}catch\{\}/);
+  assert.match(bundle, /startsWith\("paizomath-custom-questions-"\)/);
+  assert.match(bundle, /typeof d\.progress==="string"&&d\.progress\.length<1000000/);
+  assert.match(bundle, /typeof s\.topic==="string"&&s\.topic\.trim\(\)\.length>0/);
 });
 
 test('all application routes are declared and quiz navigation is null-safe', () => {
