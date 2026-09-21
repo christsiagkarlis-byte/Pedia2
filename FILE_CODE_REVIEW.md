@@ -10,7 +10,7 @@
 
 Πριν τις διορθώσεις εντοπίστηκαν πέντε θέματα που μπορούσαν να επηρεάσουν την ασφάλεια, τη συμπεριφορά offline και τη συμβατότητα εγκατάστασης. Όλα διορθώθηκαν στο παραδοτέο ZIP. Δεν παραμένουν στατικοί έλεγχοι με error ή warning.
 
-Η τελική σουίτα περιλαμβάνει **42 επιτυχείς ελέγχους**. Επιπλέον, ο ανεξάρτητος audit έλεγχος επέστρεψε **ERROR_COUNT=0 και WARNING_COUNT=0**.
+Η τελική σουίτα περιλαμβάνει **43 επιτυχείς ελέγχους**. Επιπλέον, ο ανεξάρτητος audit έλεγχος επέστρεψε **ERROR_COUNT=0 και WARNING_COUNT=0**.
 
 > Σημαντικός περιορισμός: το ZIP περιέχει production/minified bundle και όχι τα αρχικά React/TypeScript source files. Επομένως, το διορθωμένο `assets/index-BT5Zs9ye.js` είναι έτοιμο για deployment/copy-paste ως build artifact, αλλά δεν μπορεί να αντικαταστήσει maintainable source modules που δεν υπάρχουν στο archive.
 
@@ -26,6 +26,8 @@
 | High | Αλλαγή φίλτρων μπορούσε να αφήσει παλιές αντικαταστάσεις. | Προστέθηκε reset του replacement state σε αλλαγή τάξης, μαθήματος, γλώσσας ή πλήθους. |
 | Medium | Με ένα μόνο διαθέσιμο question το κουμπί μπορούσε να ξαναδώσει την ίδια ερώτηση. | Το κουμπί απενεργοποιείται όταν δεν υπάρχει διαφορετική διαθέσιμη ερώτηση. Υπάρχει και fallback μήνυμα για μη διαθέσιμη επιλογή. |
 | Medium | Η επιλογή replacement ήταν προβλέψιμη. | Η νέα ερώτηση επιλέγεται τυχαία από φιλτραρισμένο pool που εξαιρεί ήδη χρησιμοποιημένα IDs και ίδιο prompt. |
+| High | Το «Αποθήκευση και εισαγωγή» custom question αποθήκευε τη νέα ερώτηση, αλλά όταν ήταν επιλεγμένη θέση αντικατάστασης δεν ενημέρωνε το replacement map. | Το save handler χρησιμοποιεί πλέον το selected `P` και γράφει τη νέα ερώτηση στο map με το `targetId`. Καθαρίζει επίσης τη φόρμα και το selected position. |
+| Medium | Η custom ερώτηση μπορούσε να εμφανιστεί δύο φορές όταν ήταν ταυτόχρονα στο local bank και στο replacement map. | Το active pool εξαιρεί custom entries που υπάρχουν ήδη ως replacement values. |
 | High | Ο validator εισαγωγής δεχόταν μόνο `topic: "Μαθηματικά"`. | Ο validator δέχεται μη κενό topic και το import φιλτράρει με βάση το ενεργό topic του χρήστη. |
 | High | Η device cleanup ρουτίνα έκανε `localStorage.clear()`, διέγραφε όλα τα Cache Storage entries και έκανε unregister όλους τους service workers του origin. | Η διαγραφή περιορίστηκε στα keys της εφαρμογής, στα `paizomath-*` caches και στον root service worker της εφαρμογής. |
 | Medium | Το backup progress μπορούσε να αποθηκευτεί χωρίς επαρκή validation τύπου και μεγέθους. | Αποθηκεύεται μόνο string progress μικρότερο από 1 MB. |
@@ -127,6 +129,8 @@ for (const cacheName of await caches.keys()) {
 }
 ```
 
+Για το κουμπί εγκατάστασης, όταν ο browser προσφέρει native PWA installation prompt, εμφανίζεται πρώτα το μήνυμα «Δημιουργείται συντόμευση στη συσκευή σας» και στη συνέχεια καλείται το native `beforeinstallprompt`. Σε browsers που δεν επιτρέπουν programmatic installation, η εφαρμογή αντιγράφει το `/app/` link και εμφανίζει οδηγίες για «Προσθήκη στην αρχική οθόνη». Ο browser δεν επιτρέπει σε μια web page να δημιουργήσει σιωπηλά shortcut χωρίς user gesture και native permission.
+
 ### `manifest.webmanifest`
 
 Το manifest είχε μόνο SVG icon. Αυτό μπορεί να λειτουργεί σε ορισμένους browsers, αλλά δεν είναι η πιο συμβατή επιλογή για Android/PWA installation flows που περιμένουν raster icons σε μεγέθη 192×192 και 512×512.
@@ -214,7 +218,7 @@ for (const cacheName of await caches.keys()) {
 - backup progress validation,
 - dynamic topic validation.
 
-Αποτέλεσμα: **42 tests passed**.
+Αποτέλεσμα: **43 tests passed**.
 
 ### Βοηθητικά αρχεία review
 
@@ -248,7 +252,7 @@ for (const cacheName of await caches.keys()) {
 | PWA manifest | PASS |
 | Service worker routing | PASS |
 | Scoped storage cleanup | PASS |
-| Regression suite | **42/42 PASS** |
+| Regression suite | **43/43 PASS** |
 | Independent audit | **0 errors, 0 warnings** |
 
 ## Παραδοτέα

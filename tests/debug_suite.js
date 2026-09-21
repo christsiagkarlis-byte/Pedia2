@@ -67,6 +67,8 @@ test('PWA manifest provides install-compatible icons and safe scope', () => {
   assert.equal(pwa.scope, './');
   assert.ok(pwa.icons.some(icon => icon.src === './paizomath-icon-192.png' && icon.sizes === '192x192'));
   assert.ok(pwa.icons.some(icon => icon.src === './paizomath-icon-512.png' && icon.sizes === '512x512'));
+  assert.match(bundle, /Δημιουργείται συντόμευση στη συσκευή σας/);
+  assert.match(bundle, /window\.alert\(s==="el"\?"Δημιουργείται συντόμευση/);
 });
 
 test('PWA shortcut launches directly into the protected app route', () => {
@@ -170,9 +172,16 @@ test('teachers can create and insert a custom question into the active test', ()
   assert.match(bundle, /Κείμενο ερώτησης/);
   assert.match(bundle, /Επιλογή σωστής απάντησης/);
   assert.match(bundle, /source:"teacher-custom"/);
+  assert.match(bundle, /P>=0&&targetId&&tt\(q=>\(\{\.\.\.q,\[targetId\]:J\}\)\)/);
+  assert.match(bundle, /U\(-1\),ae\(!1\),ee\(""\),te\(\["","","",""\]\)/);
   assert.match(bundle, /Math\.max\(1,Math\.min\(20,h\)\)\+K\.length/);
-  assert.match(bundle, /V=\[\.\.\.K,\.\.\.nx\(d,u,s/);
+  assert.match(bundle, /V=\[\.\.\.K\.filter\(F=>!replacementIds\.has\(String\(F\.id\)\)\),\.\.\.nx\(d,u,s/);
   assert.match(bundle, /scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
+});
+
+test('custom replacement does not duplicate the same question in the active pool', () => {
+  assert.match(bundle, /replacementIds=new Set\(Object\.values\(X\)\.map\(F=>String\(F\.id\)\)\)/);
+  assert.match(bundle, /K\.filter\(F=>!replacementIds\.has\(String\(F\.id\)\)\)/);
 });
 
 test('child profile deletion requires the parent or teacher PIN and clears progress', () => {
