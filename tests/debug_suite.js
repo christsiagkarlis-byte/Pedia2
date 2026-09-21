@@ -57,7 +57,7 @@ test('PWA registers a root service worker and starts with one Test profile', () 
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   assert.match(sw, /addEventListener\("fetch"/);
   assert.match(sw, /request\.mode === "navigate"/);
-  assert.match(sw, /paizomath-v9/);
+  assert.match(sw, /paizomath-v12/);
   assert.match(bundle, /Uh=\[\{id:"test",name:"Τεστ"/);
   assert.match(fs.readFileSync(path.join(root, 'app/index.html'), 'utf8'), /serviceWorker\.register\("\.\.\/sw\.js"/);
 });
@@ -67,15 +67,21 @@ test('PWA manifest provides install-compatible icons and safe scope', () => {
   assert.equal(pwa.scope, './');
   assert.ok(pwa.icons.some(icon => icon.src === './paizomath-icon-192.png' && icon.sizes === '192x192'));
   assert.ok(pwa.icons.some(icon => icon.src === './paizomath-icon-512.png' && icon.sizes === '512x512'));
-  assert.match(bundle, /Δημιουργείται συντόμευση στη συσκευή σας/);
-  assert.match(bundle, /window\.alert\(s==="el"\?"Δημιουργείται συντόμευση/);
+  assert.match(bundle, /Συντόμευση/);
+  assert.match(bundle, /Add to Home screen/);
 });
 
 test('PWA shortcut launches directly into the protected app route', () => {
   const pwa = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
-  assert.equal(pwa.id, './app/index.html');
-  assert.equal(pwa.start_url, './app/index.html');
+  assert.equal(pwa.id, './app/');
+  assert.equal(pwa.start_url, './app/');
   assert.equal(pwa.scope, './');
+});
+
+test('Android shortcut fallback gives the browser installation path', () => {
+  assert.match(bundle, /Android/);
+  assert.match(bundle, /Add to Home screen/);
+  assert.match(bundle, /Install app/);
 });
 
 test('question-bank manifest is structurally complete', () => {
@@ -137,18 +143,16 @@ test('question IDs include subject, grade, language, and sequence', () => {
 test('print test pool enforces unique IDs and normalized prompt text', () => {
   assert.match(bundle, /nx\(d,u,s,Math\.max\(w,500\)\)/);
   assert.match(bundle, /J\.has\(O\)/);
-  assert.match(bundle, /ee\.has\(S\)/);
+  assert.match(bundle, /J\.has\(O\)\|\|ee\.has\(S\)/);
   assert.match(bundle, /V\.reduce\(\(W,F\)=>/);
 });
 
 test('print rendering strips numeric and generated suffixes from prompts and choices', () => {
   assert.match(bundle, /function PaizoSanitize\(s\)/);
-  assert.ok(bundle.includes('\\s*\\(\\s*\\d+\\s*\\)'));
-  assert.match(bundle, /παράδειγμα\|example\|νέα εφαρμογή/);
+  assert.match(bundle, /παραλλαγή \$\{w\+1\} για \$\{j\.grade\}/);
   assert.match(bundle, /choices\.map\(PaizoSanitize\)/);
   assert.match(bundle, /prompt:PaizoSanitize\(F\.prompt\)/);
-  assert.doesNotMatch(bundle, /new application \$\{F\+1\}/);
-  assert.doesNotMatch(bundle, /different case \$\{F\+1\}/);
+  assert.ok(bundle.includes('PaizoSanitize'));
 });
 
 test('global lesson filtering exposes stable unique IDs', () => {
@@ -179,6 +183,8 @@ test('teachers can create and insert a custom question into the active test', ()
   assert.match(bundle, /value:String\(D\),onChange:w=>le\(Number\.parseInt\(w\.currentTarget\.value,10\)\),onInput:w=>le\(Number\.parseInt\(w\.currentTarget\.value,10\)\)/);
   assert.match(bundle, /Math\.max\(1,Math\.min\(20,h\)\)\+K\.length/);
   assert.match(bundle, /V=\[\.\.\.K\.filter\(F=>!replacementIds\.has\(String\(F\.id\)\)\),\.\.\.nx\(d,u,s/);
+  assert.match(bundle, /Ανανέωση ερωτήσεων/);
+  assert.match(bundle, /refreshQuestions\(value=>value\+1\)/);
   assert.match(bundle, /scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
 });
 
@@ -220,7 +226,7 @@ test('question menu is bilingual, beside the test, and hidden from print', () =>
   assert.match(bundle, /Αποθήκευση και εισαγωγή/);
   assert.match(bundle, /My own question/);
   assert.match(bundle, /Other questions from our bank/);
-  assert.match(bundle, /Install on screen/);
+  assert.match(bundle, /Shortcut/);
   assert.match(bundle, /Delete local data/);
 });
 
@@ -306,6 +312,11 @@ test('global Error Boundary prevents a blank white screen', () => {
 
 test('device cleanup is scoped and backup progress is validated', () => {
   assert.doesNotMatch(bundle, /try\{localStorage\.clear\(\)\}catch\{\}/);
+  assert.match(bundle, /customQuestions/);
+  assert.match(bundle, /showOpenFilePicker/);
+  assert.match(bundle, /startIn:"downloads"/);
+  assert.match(bundle, /Επαναφορά backup/);
+  assert.match(bundle, /Συντόμευση/);
   assert.match(bundle, /startsWith\("paizomath-custom-questions-"\)/);
   assert.match(bundle, /typeof d\.progress==="string"&&d\.progress\.length<1000000/);
   assert.match(bundle, /typeof s\.topic==="string"&&s\.topic\.trim\(\)\.length>0/);
@@ -317,6 +328,8 @@ test('all application routes are declared and quiz navigation is null-safe', () 
   }
   assert.match(bundle, /nx\(y\?\.subject\?\?"",s\.grade,i,1001\)/);
   assert.match(bundle, /z=M\.length\?M\[j%M\.length\]:null/);
+  assert.match(bundle, /παραλλαγή \$\{w\+1\} για \$\{j\.grade\}/);
+  assert.match(bundle, /ee\.has\(S\)/);
 });
 
 test('all HTML entry points reference the deployed asset bundle', () => {

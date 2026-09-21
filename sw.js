@@ -1,4 +1,4 @@
-const CACHE_NAME = "paizomath-v9";
+const CACHE_NAME = "paizomath-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
