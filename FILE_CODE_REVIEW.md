@@ -28,6 +28,7 @@
 | Medium | Η επιλογή replacement ήταν προβλέψιμη. | Η νέα ερώτηση επιλέγεται τυχαία από φιλτραρισμένο pool που εξαιρεί ήδη χρησιμοποιημένα IDs και ίδιο prompt. |
 | High | Το «Αποθήκευση και εισαγωγή» custom question αποθήκευε τη νέα ερώτηση, αλλά όταν ήταν επιλεγμένη θέση αντικατάστασης δεν ενημέρωνε το replacement map. | Το save handler χρησιμοποιεί πλέον το selected `P` και γράφει τη νέα ερώτηση στο map με το `targetId`. Καθαρίζει επίσης τη φόρμα και το selected position. |
 | Medium | Η custom ερώτηση μπορούσε να εμφανιστεί δύο φορές όταν ήταν ταυτόχρονα στο local bank και στο replacement map. | Το active pool εξαιρεί custom entries που υπάρχουν ήδη ως replacement values. |
+| High | Η φόρμα έκανε silent return όταν υπήρχε κενή ή διπλή απάντηση, με αποτέλεσμα να φαίνεται ότι το save δεν λειτουργεί. | Προστέθηκε σαφές alert validation και το select σωστής απάντησης χρησιμοποιεί explicit string values και `Number.parseInt`. |
 | High | Ο validator εισαγωγής δεχόταν μόνο `topic: "Μαθηματικά"`. | Ο validator δέχεται μη κενό topic και το import φιλτράρει με βάση το ενεργό topic του χρήστη. |
 | High | Η device cleanup ρουτίνα έκανε `localStorage.clear()`, διέγραφε όλα τα Cache Storage entries και έκανε unregister όλους τους service workers του origin. | Η διαγραφή περιορίστηκε στα keys της εφαρμογής, στα `paizomath-*` caches και στον root service worker της εφαρμογής. |
 | Medium | Το backup progress μπορούσε να αποθηκευτεί χωρίς επαρκή validation τύπου και μεγέθους. | Αποθηκεύεται μόνο string progress μικρότερο από 1 MB. |
